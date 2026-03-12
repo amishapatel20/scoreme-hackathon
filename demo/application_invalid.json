@@ -1,0 +1,11 @@
+{
+  "payload": {
+    "applicant_id": "APP-002",
+    "applicant_name": null,
+    "requested_amount": 100000,
+    "monthly_income": 6000,
+    "credit_score": 720,
+    "employment_type": "salaried",
+    "dependency_mode": "pass"
+  }
+}

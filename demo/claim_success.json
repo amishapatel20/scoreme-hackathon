@@ -1,0 +1,11 @@
+{
+  "payload": {
+    "claim_id": "CLM-001",
+    "claimant_name": "Neha Singh",
+    "claim_amount": 45000,
+    "incident_type": "medical",
+    "document_count": 3,
+    "prior_claims_count": 1,
+    "dependency_mode": "pass"
+  }
+}

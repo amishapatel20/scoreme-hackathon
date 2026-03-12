@@ -1,0 +1,85 @@
+name: claim_processing
+version: "1.0"
+description: Claim processing workflow demonstrating a third configurable business use case on the same platform.
+input_schema:
+  fields:
+    claim_id:
+      type: string
+      required: true
+    claimant_name:
+      type: string
+      required: true
+    claim_amount:
+      type: number
+      required: true
+      minimum: 1
+      maximum: 500000
+    incident_type:
+      type: string
+      required: true
+      enum:
+        - medical
+        - travel
+        - property
+        - auto
+    document_count:
+      type: integer
+      required: true
+      minimum: 0
+    prior_claims_count:
+      type: integer
+      required: true
+      minimum: 0
+    dependency_mode:
+      type: string
+      required: false
+      enum:
+        - pass
+        - fail
+        - transient_error
+stages:
+  - id: intake
+    name: Intake Validation
+    rules:
+      - id: documents_complete
+        type: threshold
+        field: document_count
+        operator: gte
+        value: 2
+        reason: Claims with fewer than two documents require manual review.
+        data_refs:
+          - document_count
+        on_fail: manual_review
+  - id: risk_screening
+    name: Claim Risk Screening
+    rules:
+      - id: prior_claims_guard
+        type: threshold
+        field: prior_claims_count
+        operator: lte
+        value: 3
+        reason: Claimants with more than three prior claims require manual review.
+        data_refs:
+          - prior_claims_count
+        on_fail: manual_review
+      - id: high_value_claim
+        type: threshold
+        field: claim_amount
+        operator: lte
+        value: 200000
+        reason: Claims above 200000 move to manual review.
+        data_refs:
+          - claim_amount
+        on_fail: manual_review
+  - id: external_checks
+    name: External Checks
+    rules:
+      - id: fraud_screen
+        type: dependency
+        dependency: fraud_service
+        reason: External fraud screening must clear claims before auto decisioning.
+        data_refs:
+          - claim_id
+          - dependency_mode
+        on_fail: reject
+        on_dependency_error: retry
