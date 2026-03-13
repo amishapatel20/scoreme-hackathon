@@ -1,0 +1,66 @@
+workflow_id: document_verification
+name: Document Verification Workflow
+description: Validate uploaded identity documents with OCR and confidence checks.
+version: "1.0"
+payload_schema:
+  - name: document_id
+    type: string
+    required: true
+    label: Document ID
+  - name: applicant_name
+    type: string
+    required: true
+    label: Applicant Name
+  - name: country_code
+    type: string
+    required: true
+    label: Country Code
+  - name: ocr_confidence
+    type: number
+    required: true
+    label: OCR Confidence
+  - name: dependency_mode
+    type: string
+    required: false
+    label: Dependency Mode
+stages:
+  - name: metadata_validation
+    type: auto
+    rules:
+      - rule_id: document_id_required
+        type: mandatory
+        field: document_id
+        operator: neq
+        value: ""
+        action_on_fail: reject
+        explanation: Document ID is required
+      - rule_id: ocr_confidence_threshold
+        type: threshold
+        field: ocr_confidence
+        operator: gte
+        value: 0.8
+        action_on_fail: flag_review
+        explanation: OCR confidence below 0.8 requires manual review
+      - rule_id: country_whitelist
+        type: conditional
+        field: country_code
+        operator: contains
+        value: "IN"
+        action_on_fail: warn
+        explanation: Non-IN country codes require additional checks
+    on_success: authenticity_check
+    on_failure: rejected
+  - name: authenticity_check
+    type: external
+    external_dependency: document_auth_api
+    on_success: approved
+    on_failure: manual_review
+    on_retry: authenticity_check
+    rules: []
+retry_policy:
+  max_attempts: 2
+  backoff_seconds: 0.05
+  backoff_multiplier: 2.0
+external_dependency:
+  name: document_auth_api
+  simulate_failure_rate: 0.15

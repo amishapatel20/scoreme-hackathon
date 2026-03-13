@@ -1,0 +1,71 @@
+workflow_id: employee_onboarding
+name: Employee Onboarding Workflow
+description: Process HR onboarding with identity verification and provisioning checks.
+version: "1.0"
+payload_schema:
+  - name: employee_name
+    type: string
+    required: true
+    label: Employee Name
+  - name: department
+    type: string
+    required: true
+    label: Department
+  - name: job_level
+    type: string
+    required: true
+    label: Job Level
+  - name: background_check_score
+    type: integer
+    required: true
+    label: Background Check Score
+  - name: dependency_mode
+    type: string
+    required: false
+    label: Dependency Mode
+stages:
+  - name: profile_validation
+    type: auto
+    rules:
+      - rule_id: employee_name_required
+        type: mandatory
+        field: employee_name
+        operator: neq
+        value: ""
+        action_on_fail: reject
+        explanation: Employee name is required
+      - rule_id: background_check_threshold
+        type: threshold
+        field: background_check_score
+        operator: gte
+        value: 70
+        action_on_fail: reject
+        explanation: Background check score below 70 cannot proceed
+    on_success: identity_verification
+    on_failure: rejected
+  - name: identity_verification
+    type: external
+    external_dependency: id_verifier
+    on_success: access_provisioning
+    on_failure: failed
+    on_retry: identity_verification
+    rules: []
+  - name: access_provisioning
+    type: auto
+    rules:
+      - rule_id: department_required
+        type: mandatory
+        field: department
+        operator: neq
+        value: ""
+        action_on_fail: flag_review
+        explanation: Department is required before account provisioning
+    on_success: approved
+    on_failure: manual_review
+retry_policy:
+  max_attempts: 2
+  backoff_seconds: 0.05
+  backoff_multiplier: 2.0
+external_dependency:
+  name: id_verifier
+  simulate_failure_rate: 0.05

@@ -1,0 +1,83 @@
+workflow_id: loan_approval
+name: Loan Approval Workflow
+description: Evaluate loan applicants using intake checks, risk checks, and external bureau calls.
+version: "1.0"
+payload_schema:
+  - name: applicant_name
+    type: string
+    required: true
+    label: Applicant Name
+    helper_text: Full legal name of the applicant.
+  - name: credit_score
+    type: integer
+    required: true
+    label: Credit Score
+    helper_text: Credit score from 300 to 900.
+  - name: loan_amount
+    type: number
+    required: true
+    label: Loan Amount
+    helper_text: Requested loan principal amount.
+  - name: employment_status
+    type: string
+    required: true
+    label: Employment Status
+    helper_text: Typical values are employed, self_employed, or unemployed.
+  - name: dependency_mode
+    type: string
+    required: false
+    label: Dependency Mode
+    helper_text: Optional test control (pass, fail).
+stages:
+  - name: intake_validation
+    type: auto
+    rules:
+      - rule_id: applicant_name_required
+        type: mandatory
+        field: applicant_name
+        operator: neq
+        value: ""
+        action_on_fail: reject
+        explanation: Applicant name is required
+      - rule_id: credit_score_threshold
+        type: threshold
+        field: credit_score
+        operator: gte
+        value: 650
+        action_on_fail: reject
+        explanation: Credit score below minimum threshold of 650
+      - rule_id: high_amount_review
+        type: conditional
+        field: loan_amount
+        operator: lte
+        value: 500000
+        action_on_fail: flag_review
+        explanation: Loans above 500000 require manual review
+    on_success: credit_check
+    on_failure: rejected
+  - name: credit_check
+    type: external
+    external_dependency: credit_bureau
+    on_success: final_approval
+    on_failure: failed
+    on_retry: credit_check
+    rules: []
+  - name: final_approval
+    type: auto
+    rules:
+      - rule_id: employment_required
+        type: mandatory
+        field: employment_status
+        operator: neq
+        value: ""
+        action_on_fail: flag_review
+        explanation: Employment status is required for final approval
+    on_success: approved
+    on_failure: rejected
+retry_policy:
+  max_attempts: 3
+  backoff_seconds: 0.05
+  backoff_multiplier: 2.0
+external_dependency:
+  name: credit_bureau
+  simulate_failure_rate: 0.2

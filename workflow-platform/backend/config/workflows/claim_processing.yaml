@@ -1,0 +1,83 @@
+workflow_id: claim_processing
+name: Claim Processing Workflow
+description: Validate insurance claims, run fraud checks, and route for payment approval.
+version: "1.0"
+payload_schema:
+  - name: claim_id
+    type: string
+    required: true
+    label: Claim ID
+    helper_text: Unique claim identifier.
+  - name: claimant_name
+    type: string
+    required: true
+    label: Claimant Name
+  - name: claim_amount
+    type: number
+    required: true
+    label: Claim Amount
+  - name: incident_type
+    type: string
+    required: true
+    label: Incident Type
+  - name: document_count
+    type: integer
+    required: true
+    label: Supporting Documents
+  - name: dependency_mode
+    type: string
+    required: false
+    label: Dependency Mode
+stages:
+  - name: claim_intake
+    type: auto
+    rules:
+      - rule_id: claim_id_required
+        type: mandatory
+        field: claim_id
+        operator: neq
+        value: ""
+        action_on_fail: reject
+        explanation: Claim ID is required
+      - rule_id: document_completeness
+        type: threshold
+        field: document_count
+        operator: gte
+        value: 2
+        action_on_fail: flag_review
+        explanation: At least two supporting documents are required
+      - rule_id: high_value_claim
+        type: conditional
+        field: claim_amount
+        operator: lte
+        value: 100000
+        action_on_fail: flag_review
+        explanation: Claims above 100000 must be manually reviewed
+    on_success: fraud_screen
+    on_failure: rejected
+  - name: fraud_screen
+    type: external
+    external_dependency: fraud_service
+    on_success: payout_decision
+    on_failure: failed
+    on_retry: fraud_screen
+    rules: []
+  - name: payout_decision
+    type: auto
+    rules:
+      - rule_id: claimant_present
+        type: mandatory
+        field: claimant_name
+        operator: neq
+        value: ""
+        action_on_fail: reject
+        explanation: Claimant name is required for payout decision
+    on_success: approved
+    on_failure: rejected
+retry_policy:
+  max_attempts: 3
+  backoff_seconds: 0.05
+  backoff_multiplier: 2.0
+external_dependency:
+  name: fraud_service
+  simulate_failure_rate: 0.1

@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Workflow {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  version    String
+  configJson Json     @map("config_json")
+  status     String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  rules     Rule[]
+  instances WorkflowInstance[]
+
+  @@unique([name, version])
+  @@map("workflows")
+}
+
+model WorkflowInstance {
+  id             String   @id @default(uuid()) @db.Uuid
+  workflowId     String   @map("workflow_id") @db.Uuid
+  currentStage   String   @map("current_stage")
+  stateData      Json     @map("state_data")
+  status         String
+  idempotencyKey String   @map("idempotency_key")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  workflow       Workflow        @relation(fields: [workflowId], references: [id])
+  auditLogs      AuditLog[]
+  transitions    StageTransition[]
+
+  @@index([workflowId])
+  @@index([status])
+  @@unique([workflowId, idempotencyKey])
+  @@map("workflow_instances")
+}
+
+model AuditLog {
+  id                String   @id @default(uuid()) @db.Uuid
+  instanceId        String   @map("instance_id") @db.Uuid
+  eventType         String   @map("event_type")
+  ruleId            String?  @map("rule_id")
+  inputSnapshot     Json     @map("input_snapshot")
+  outputSnapshot    Json     @map("output_snapshot")
+  decisionReasoning Json     @map("decision_reasoning")
+  timestamp         DateTime @default(now())
+
+  instance WorkflowInstance @relation(fields: [instanceId], references: [id])
+
+  @@index([instanceId, timestamp])
+  @@map("audit_logs")
+}
+
+model Rule {
+  id            String   @id @default(uuid()) @db.Uuid
+  workflowId    String   @map("workflow_id") @db.Uuid
+  name          String
+  conditionJson Json     @map("condition_json")
+  action        String
+  priority      Int
+  version       String
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  workflow Workflow @relation(fields: [workflowId], references: [id])
+
+  @@index([workflowId])
+  @@map("rules")
+}
+
+model StageTransition {
+  id         String   @id @default(uuid()) @db.Uuid
+  instanceId String   @map("instance_id") @db.Uuid
+  fromStage  String   @map("from_stage")
+  toStage    String   @map("to_stage")
+  trigger    String
+  metadata   Json     @default("{}")
+  timestamp  DateTime @default(now())
+
+  instance WorkflowInstance @relation(fields: [instanceId], references: [id])
+
+  @@index([instanceId, timestamp])
+  @@map("stage_transitions")
+}

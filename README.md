@@ -2,6 +2,14 @@
 
 Workflow Operations Platform is a configurable decisioning service for structured request intake, rule evaluation, workflow execution, audit logging, state tracking, and failure recovery.
 
+## Which UI am I running?
+
+This repository currently contains multiple runnable projects. If you start one and see a generic “Vite + React” page, that’s the default Vite scaffold (not your decisioning console).
+
+- **FastAPI + built-in operations console** (source of truth): run `uvicorn app.main:app --reload` and open `http://127.0.0.1:8000/`.
+- **Node.js operations console** (Next.js port): run from `web/` and open `http://localhost:3000/`.
+- **New production frontend scaffold** (Vite): run from `frontend/` and open `http://localhost:5173/` (currently just a starter app until we implement the platform UI).
+
 It is built for operational workflows that need deterministic decisions, explainability, idempotent processing, and the ability to change business behavior through configuration instead of repeated code rewrites.
 
 The repository includes:
@@ -115,6 +123,18 @@ pip install -e .[dev]
 
 ```bash
 uvicorn app.main:app --reload
+```
+
+On Windows PowerShell, you can also use:
+
+```powershell
+./run_api.ps1
+```
+
+If port `8000` is already in use:
+
+```powershell
+./run_api.ps1 -Port 8001
 ```
 
 ### 4. Open the console

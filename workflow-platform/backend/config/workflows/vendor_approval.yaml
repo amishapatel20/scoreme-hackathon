@@ -1,0 +1,78 @@
+workflow_id: vendor_approval
+name: Vendor Approval Workflow
+description: Approve vendors using compliance and risk checks.
+version: "1.0"
+payload_schema:
+  - name: vendor_name
+    type: string
+    required: true
+    label: Vendor Name
+  - name: annual_revenue
+    type: number
+    required: true
+    label: Annual Revenue
+  - name: compliance_score
+    type: integer
+    required: true
+    label: Compliance Score
+  - name: years_in_business
+    type: integer
+    required: true
+    label: Years In Business
+  - name: dependency_mode
+    type: string
+    required: false
+    label: Dependency Mode
+stages:
+  - name: qualification
+    type: auto
+    rules:
+      - rule_id: vendor_name_required
+        type: mandatory
+        field: vendor_name
+        operator: neq
+        value: ""
+        action_on_fail: reject
+        explanation: Vendor name is required
+      - rule_id: compliance_threshold
+        type: threshold
+        field: compliance_score
+        operator: gte
+        value: 75
+        action_on_fail: flag_review
+        explanation: Vendors below compliance score 75 require review
+      - rule_id: revenue_guardrail
+        type: conditional
+        field: annual_revenue
+        operator: gte
+        value: 500000
+        action_on_fail: flag_review
+        explanation: Vendors with low annual revenue require manual review
+    on_success: sanctions_check
+    on_failure: rejected
+  - name: sanctions_check
+    type: external
+    external_dependency: sanctions_registry
+    on_success: final_decision
+    on_failure: failed
+    on_retry: sanctions_check
+    rules: []
+  - name: final_decision
+    type: auto
+    rules:
+      - rule_id: business_maturity
+        type: threshold
+        field: years_in_business
+        operator: gte
+        value: 1
+        action_on_fail: reject
+        explanation: Vendor must have at least one year of business history
+    on_success: approved
+    on_failure: rejected
+retry_policy:
+  max_attempts: 3
+  backoff_seconds: 0.05
+  backoff_multiplier: 1.8
+external_dependency:
+  name: sanctions_registry
+  simulate_failure_rate: 0.1
