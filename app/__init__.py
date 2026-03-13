@@ -1,1 +1,0 @@
-"""Resilient decision platform package."""

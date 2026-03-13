@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: workflow-operations-platform
-    env: docker
-    plan: free
-    healthCheckPath: /health
-    autoDeploy: true
