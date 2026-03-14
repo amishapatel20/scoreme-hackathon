@@ -1,4 +1,4 @@
-# ScoreMe Workflow Decision Platform
+#Workflow Decision Platform
 
 A production-ready, configuration-driven workflow platform for structured decisioning. The system combines a FastAPI backend, a React operations console, YAML-defined workflows, auditability, retries, and admin controls.
 
