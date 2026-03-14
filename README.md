@@ -132,6 +132,34 @@ To add a new workflow, create another YAML file in the same folder with a unique
 - Architecture: `workflow-platform/ARCHITECTURE.md`
 - Decision examples: `workflow-platform/DECISION_EXAMPLES.md`
 
+## Screenshots
+
+Store your project images in:
+
+- `workflow-platform/docs/screenshots/`
+
+Then reference them in README with repository-relative paths so they render on GitHub.
+
+Example gallery:
+
+![Dashboard](workflow-platform/docs/screenshots/dashboard.png)
+![New Request](workflow-platform/docs/screenshots/new-request.png)
+![Request Detail](workflow-platform/docs/screenshots/request-detail.png)
+![Audit Explorer](workflow-platform/docs/screenshots/audit-explorer.png)
+![Admin Panel](workflow-platform/docs/screenshots/admin-panel.png)
+
+If your file names are different, update the image paths above to match exactly.
+
+## Upload Images To GitHub
+
+If pasting directly into the README editor is blocked, upload images as files first:
+
+1. Open your repository on GitHub.
+2. Go to `workflow-platform/docs/screenshots/`.
+3. Click **Add file** -> **Upload files**.
+4. Upload your PNG or JPG images and commit.
+5. Ensure README image links use the same exact file names.
+
 ## Notes
 
 - Root-level legacy stacks were removed to keep this repository clean and focused on the active production platform.
