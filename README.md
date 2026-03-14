@@ -4,7 +4,13 @@ A production-ready, configuration-driven workflow platform for structured decisi
 
 This repository is intentionally simplified: the active implementation is under `workflow-platform/`.
 
-## Why This Project
+## What This Project Is
+
+This platform is designed for teams that run repeatable business decisions such as loan checks, claim triage, vendor onboarding, document validation, and employee onboarding. Instead of hard-coding every rule into application logic, workflows are described in YAML and executed by a deterministic engine.
+
+Each request is validated, evaluated through stage rules, routed to outcomes, and persisted with full traceability so operators can inspect exactly what happened and why.
+
+## Why This Is Useful
 
 Most approval and operations processes change frequently. Hard-coding business rules into application code slows teams down and makes changes risky. This platform solves that by moving workflow behavior into YAML configuration while preserving:
 
@@ -12,6 +18,16 @@ Most approval and operations processes change frequently. Hard-coding business r
 - explainable outcomes
 - full audit history
 - operational controls (retry, override, queue views)
+
+## What It Can Do
+
+- evaluate configurable workflows with multi-stage rule logic
+- validate incoming payloads against workflow schemas
+- record full request lifecycle state transitions
+- expose audit traces for each rule pass/fail decision
+- support retry policies for transient dependency failures
+- provide operator actions through Admin Panel (retry and override)
+- surface operational metrics and queue visibility
 
 ## Core Capabilities
 
@@ -127,6 +143,24 @@ To add a new workflow, create another YAML file in the same folder with a unique
 - `POST /api/admin/override/{request_id}` - manual approve/reject
 - `GET /api/admin/metrics` - operations metrics
 
+## Built-in Assistant
+
+The platform includes an in-app assistant widget in the bottom-right corner of the UI. It helps users quickly navigate platform actions without leaving the dashboard.
+
+The assistant can help with:
+
+- checking request status by request ID
+- explaining rejection reasons using audit trail context
+- summarizing workflow rule layout (for example loan approval stages)
+- guiding operators on submitting requests and adding new workflows
+
+Typical prompts:
+
+- status of request REQ-1001
+- why was request REQ-1001 rejected
+- what rules are in loan approval
+- how do I add a new workflow
+
 ## Documentation
 
 - Architecture: `workflow-platform/ARCHITECTURE.md`
@@ -142,10 +176,32 @@ Then reference them in README with repository-relative paths so they render on G
 
 Example gallery:
 
+Following image of Dashboard:
+
 ![Dashboard](workflow-platform/docs/screenshots/dashboard.png)
+
+<br/><br/>
+
+Following image of New Request page:
+
 ![New Request](workflow-platform/docs/screenshots/new-request.png)
+
+<br/><br/>
+
+Following image of Request Detail page:
+
 ![Request Detail](workflow-platform/docs/screenshots/request-detail.png)
+
+<br/><br/>
+
+Following image of Audit Explorer page:
+
 ![Audit Explorer](workflow-platform/docs/screenshots/audit-explorer.png)
+
+<br/><br/>
+
+Following image of Admin Panel:
+
 ![Admin Panel](workflow-platform/docs/screenshots/admin-panel.png)
 
 If your file names are different, update the image paths above to match exactly.
