@@ -231,11 +231,4 @@ npm run dev
 | GET | `/api/admin/metrics` | Operational metrics |
 | POST | `/api/admin/retry-failed` | Bulk retry failed requests |
 
-## Screenshots (Placeholders)
 
-- `docs/screenshots/dashboard.png`
-- `docs/screenshots/new-request.png`
-- `docs/screenshots/request-detail.png`
-- `docs/screenshots/audit-explorer.png`
-- `docs/screenshots/admin-panel.png`
-- `docs/screenshots/config-editor.png`
