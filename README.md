@@ -187,11 +187,7 @@ New Request page:
 
 <br/><br/>
 
-Request Detail page:
 
-![Request Detail](workflow-platform/docs/screenshots/request-detail.png)
-
-<br/><br/>
 
 Audit Explorer page:
 
