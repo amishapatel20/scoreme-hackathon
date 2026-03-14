@@ -34,8 +34,7 @@ Most approval and operations processes change frequently. Hard-coding business r
 │  ├─ frontend/                # React operations console
 │  ├─ docker-compose.yml       # Full stack local startup
 │  ├─ ARCHITECTURE.md          # Component and data-flow design
-│  ├─ DECISION_EXAMPLES.md     # Example decision traces
-│  └─ README.md                # Product-level detailed docs
+│  └─ DECISION_EXAMPLES.md     # Example decision traces
 └─ README.md                   # This repository overview
 ```
 
@@ -130,7 +129,6 @@ To add a new workflow, create another YAML file in the same folder with a unique
 
 ## Documentation
 
-- Product docs: `workflow-platform/README.md`
 - Architecture: `workflow-platform/ARCHITECTURE.md`
 - Decision examples: `workflow-platform/DECISION_EXAMPLES.md`
 
