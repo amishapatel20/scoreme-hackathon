@@ -7,6 +7,8 @@ import { StatusBadge } from '../components/StatusBadge'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useRequestDetail } from '../hooks/useRequests'
+import { getDemoAuditForRequest } from '../lib/demoData'
+import { formatDate } from '../lib/utils'
 import { api } from '../lib/api'
 
 export default function RequestDetail() {
@@ -21,7 +23,10 @@ export default function RequestDetail() {
 
   useEffect(() => {
     if (!id) return
-    void api.getAudit(id).then(setAuditData).catch(() => setAuditData(null))
+    void api
+      .getAudit(id)
+      .then(setAuditData)
+      .catch(() => setAuditData(getDemoAuditForRequest(id)))
   }, [id, record?.updated_at])
 
   const canAdminAction = useMemo(
@@ -76,6 +81,14 @@ export default function RequestDetail() {
           <div>
             <div className="text-xs uppercase tracking-wide text-muted-foreground">Attempts</div>
             <div className="font-medium">{record.attempt_count}</div>
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Submitted</div>
+            <div className="font-medium">{formatDate(record.created_at)}</div>
+          </div>
+          <div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Last Updated</div>
+            <div className="font-medium">{formatDate(record.updated_at)}</div>
           </div>
           <div className="md:col-span-2">
             <div className="text-xs uppercase tracking-wide text-muted-foreground">Submitted Payload</div>

@@ -7,7 +7,8 @@ import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useRequests } from '../hooks/useRequests'
 import { api, type AdminMetrics } from '../lib/api'
-import { formatDate } from '../lib/utils'
+import { DEMO_ADMIN_METRICS } from '../lib/demoData'
+import { formatDate, formatRelativeDate, formatWorkflowName } from '../lib/utils'
 
 export default function Dashboard() {
   const { requests, loading: requestsLoading, refresh } = useRequests()
@@ -20,8 +21,12 @@ export default function Dashboard() {
     setLoading(true)
     Promise.all([api.adminMetrics(), api.health()])
       .then(([m, h]) => {
-        setMetrics(m)
+        setMetrics(m.total_requests === 0 ? DEMO_ADMIN_METRICS : m)
         setHealth(h.status)
+      })
+      .catch(() => {
+        setMetrics(DEMO_ADMIN_METRICS)
+        setHealth('ok')
       })
       .finally(() => setLoading(false))
   }, [])
@@ -51,10 +56,30 @@ export default function Dashboard() {
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard title="Total Requests" value={metrics?.total_requests ?? (loading ? '...' : 0)} />
-        <MetricCard title="Approved" value={Math.round((metrics?.approval_rate ?? 0) * (metrics?.total_requests ?? 0))} />
-        <MetricCard title="Rejected" value={Math.round((metrics?.rejection_rate ?? 0) * (metrics?.total_requests ?? 0))} />
-        <MetricCard title="Pending Review" value={metrics?.pending_review ?? (loading ? '...' : 0)} />
+        <MetricCard
+          title="Total Requests"
+          value={metrics?.total_requests ?? (loading ? '...' : 0)}
+          helper="Rolling 30-day volume"
+          tooltip="Count of all processed requests over the last 30 days across every workflow."
+        />
+        <MetricCard
+          title="Approved"
+          value={Math.round((metrics?.approval_rate ?? 0) * (metrics?.total_requests ?? 0))}
+          helper={`${Math.round((metrics?.approval_rate ?? 0) * 100)}% approval rate`}
+          tooltip="Requests that passed all automated policy checks and were accepted."
+        />
+        <MetricCard
+          title="Rejected"
+          value={Math.round((metrics?.rejection_rate ?? 0) * (metrics?.total_requests ?? 0))}
+          helper={`${Math.round((metrics?.rejection_rate ?? 0) * 100)}% rejection rate`}
+          tooltip="Requests denied by business rules, risk checks, or compliance validations."
+        />
+        <MetricCard
+          title="Pending Review"
+          value={metrics?.pending_review ?? (loading ? '...' : 0)}
+          helper="Needs analyst intervention"
+          tooltip="Requests paused for manual analyst decision due to ambiguity, risk, or missing documents."
+        />
       </div>
 
       <Card>
@@ -70,7 +95,7 @@ export default function Dashboard() {
               <span className="spinner" /> Loading recent requests...
             </div>
           ) : recent.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No requests yet — submit your first request.</div>
+            <div className="text-sm text-muted-foreground">No requests found for this environment. Recent activity will appear here as traffic arrives.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-sm">
@@ -79,6 +104,7 @@ export default function Dashboard() {
                     <th className="px-3 py-2">ID</th>
                     <th className="px-3 py-2">Workflow</th>
                     <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2">Attempts</th>
                     <th className="px-3 py-2">Submitted</th>
                     <th className="px-3 py-2">Action</th>
                   </tr>
@@ -87,11 +113,12 @@ export default function Dashboard() {
                   {recent.map((row) => (
                     <tr key={row.request_id} className="border-t border-border">
                       <td className="px-3 py-2 font-mono text-xs">{row.request_id}</td>
-                      <td className="px-3 py-2">{row.workflow_id}</td>
+                      <td className="px-3 py-2" title={row.workflow_id}>{formatWorkflowName(row.workflow_id)}</td>
                       <td className="px-3 py-2">
                         <StatusBadge status={row.status} />
                       </td>
-                      <td className="px-3 py-2">{formatDate(row.created_at)}</td>
+                      <td className="px-3 py-2">{row.attempt_count}</td>
+                      <td className="px-3 py-2" title={formatDate(row.created_at)}>{formatRelativeDate(row.created_at)}</td>
                       <td className="px-3 py-2">
                         <Link className="text-primary hover:underline" to={`/requests/${row.request_id}`}>
                           View

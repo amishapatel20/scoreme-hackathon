@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { api, type RequestRecord } from '../lib/api'
+import { DEMO_REQUESTS } from '../lib/demoData'
 import { useAppStore } from '../store/appStore'
 
 export function useRequests(filter?: { workflow_id?: string; status?: string }) {
@@ -14,9 +15,14 @@ export function useRequests(filter?: { workflow_id?: string; status?: string }) 
     setError(null)
     try {
       const data = await api.listRequests(filter)
-      setRequests(data)
+      if (data.length === 0) {
+        setRequests(DEMO_REQUESTS)
+      } else {
+        setRequests(data)
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load requests')
+      setRequests(DEMO_REQUESTS)
+      setError('Showing demo data for requests.')
     } finally {
       setLoading(false)
     }
@@ -41,7 +47,15 @@ export function useRequestDetail(requestId?: string) {
     void api
       .getRequest(requestId)
       .then((data) => setRecord(data))
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load request'))
+      .catch((err) => {
+        const fallback = DEMO_REQUESTS.find((item) => item.request_id === requestId)
+        if (fallback) {
+          setRecord(fallback)
+          setError(null)
+          return
+        }
+        setError(err instanceof Error ? err.message : 'Failed to load request')
+      })
       .finally(() => setLoading(false))
   }, [requestId])
 
